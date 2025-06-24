@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+  <nav>
+    <div><strong>Dashboard</strong></div>
+    <div class="right">
+      <% if (user) { %>
+        <span>Welcome, <%= user.username %> (<%= user.role %>)</span>
+        <a href="/logout">Logout</a>
+        <% } %>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h2>Your Messages</h2>
+
+    <% if (user.role==='user' || user.role==='admin' ) { %>
+      <form action="/entries" method="POST">
+        <input type="text" name="title" placeholder="Title" required />
+        <textarea name="content" placeholder="Your message" required></textarea>
+        <button type="submit">Create</button>
+      </form>
+      <% } %>
+
+
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Content</th>
+              <th>Owner</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% entries.forEach(entry=> {
+              const canEdit = user.role === 'admin' ||
+              (user.role === 'editor' && entry.owner?.role === 'user') ||
+              (entry.owner?._id?.toString() === user._id.toString());
+
+              const canDelete = user.role === 'admin' || (user.role === 'user' && entry.owner._id.toString() ===
+              user._id.toString());
+              %>
+              <tr>
+                <td>
+                  <%= entry.title %>
+                </td>
+                <td>
+                  <%= entry.content %>
+                </td>
+                <td>
+                  <%= entry.owner?.username || 'Unknown' %>
+                </td>
+                <td class="actions">
+                  <% if (canEdit) { %>
+                    <form style="display:inline;" action="/entries/<%= entry._id %>/edit" method="GET">
+                      <button>Edit</button>
+                    </form>
+                    <% } %>
+                      <% if (canDelete) { %>
+                        <form action="/entries/<%= entry._id %>?_method=DELETE" method="POST">
+                          <button type="submit">Delete</button>
+                        </form>
+
+
+                        <% } %>
+                </td>
+              </tr>
+              <% }) %>
+          </tbody>
+        </table>
+  </div>
+</body>
+
+</html>
